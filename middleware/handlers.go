@@ -27,9 +27,9 @@ func createConnection() *sql.DB {
 	// load .env file
 	err := godotenv.Load(".env")
 
-	if err != nil {
-		log.Fatalf("Error loading .env file")
-	}
+	// if err != nil {
+	// 	log.Fatalf("Error loading .env file")
+	// }
 
 	db_host := os.Getenv("DB_HOST")
 	db_port := os.Getenv("DB_PORT")
