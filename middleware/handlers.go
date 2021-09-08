@@ -5,59 +5,19 @@ import (
 	"encoding/json" // package to encode and decode the json into struct and vice versa
 	"fmt"
 	"log"
-	"net/http"            // used to access the request and response object of the api
-	"os"                  // used to read the environment variable
-	"strconv"             // package used to covert string into int type
-	"tasklist-api/models" // models package where User schema is defined
+	"net/http" // used to access the request and response object of the api
+	"strconv"  // package used to covert string into int type
+
+	"tasklist-api/drivers" // drivers package with database connection logic
+	"tasklist-api/models"  // models package where User schema is defined
 
 	"github.com/gorilla/mux" // used to get the params from the route
-
-	"github.com/joho/godotenv" // package used to read the .env file
-	_ "github.com/lib/pq"      // postgres golang driver
 )
 
 // Response format
 type response struct {
 	ID      int64  `json:"id,omitempty"`
 	Message string `json:"message,omitempty"`
-}
-
-// Create connection with Postgres db
-func createConnection() *sql.DB {
-	// load .env file
-	err := godotenv.Load(".env")
-
-	// if err != nil {
-	// 	log.Fatalf("Error loading .env file")
-	// }
-
-	db_host := os.Getenv("DB_HOST")
-	db_port := os.Getenv("DB_PORT")
-	db_user := os.Getenv("DB_USER")
-	db_pass := os.Getenv("DB_PASS")
-	db_name := os.Getenv("DB_NAME")
-
-	psqlInfo := fmt.Sprintf("host=%s port=%s user=%s "+
-		"password=%s dbname=%s sslmode=disable",
-		db_host, db_port, db_user, db_pass, db_name)
-
-	// Open the connection
-	db, err := sql.Open("postgres", psqlInfo)
-
-	if err != nil {
-		panic(err)
-	}
-
-	// check the connection
-	err = db.Ping()
-
-	if err != nil {
-		panic(err)
-	}
-
-	fmt.Println("Successfully connected!")
-	// return the connection
-	return db
 }
 
 // Users //
@@ -105,7 +65,7 @@ func GetAllUser(w http.ResponseWriter, r *http.Request) {
 // DB Call to get one User by ID
 func getUser(id int64) (models.Users, error) {
 	// create the postgres db connection
-	db := createConnection()
+	db := drivers.CreateConnection()
 
 	// close the db connection
 	defer db.Close()
@@ -139,7 +99,7 @@ func getUser(id int64) (models.Users, error) {
 // DB Call to get all Users.
 func getAllUsers() ([]models.Users, error) {
 	// create the postgres db connection
-	db := createConnection()
+	db := drivers.CreateConnection()
 
 	// close the db connection
 	defer db.Close()
@@ -224,7 +184,7 @@ func GetTask(w http.ResponseWriter, r *http.Request) {
 // DB Call to get one Task by ID
 func getTask(id int64) (models.Tasks, error) {
 	// create the postgres db connection
-	db := createConnection()
+	db := drivers.CreateConnection()
 
 	// close the db connection
 	defer db.Close()
@@ -268,7 +228,7 @@ func getTask(id int64) (models.Tasks, error) {
 // DB Call to get all Tasks
 func getAllTasks() ([]models.Tasks, error) {
 	// create the postgres db connection
-	db := createConnection()
+	db := drivers.CreateConnection()
 
 	// close the db connection
 	defer db.Close()
