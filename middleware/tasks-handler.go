@@ -56,6 +56,31 @@ func GetTask(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(task)
 }
 
+// API Call to get one Task by ID
+func GetTaskStatus(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Context-Type", "application/x-www-form-urlencoded")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	// get the userid from the request params, key is "id"
+	params := mux.Vars(r)
+
+	// convert the id type from string to int
+	id, err := strconv.Atoi(params["id"])
+
+	if err != nil {
+		log.Fatalf("Unable to convert the string into int.  %v", err)
+	}
+
+	// call the getUser function with user id to retrieve a single user
+	task, err := getAllTasksStatus(int64(id))
+
+	if err != nil {
+		log.Fatalf("Unable to get user. %v", err)
+	}
+
+	// send the response
+	json.NewEncoder(w).Encode(task)
+}
+
 // DB Call to get one Task by ID
 func getTask(id int64) (models.Tasks, error) {
 	// create the postgres db connection
@@ -98,6 +123,59 @@ func getTask(id int64) (models.Tasks, error) {
 
 	// return empty user on error
 	return task, err
+}
+
+// DB Call to get all Tasks by Status
+func getAllTasksStatus(id int64) ([]models.Tasks, error) {
+	// create the postgres db connection
+	db := drivers.CreateConnection()
+
+	// close the db connection
+	defer db.Close()
+
+	var tasks []models.Tasks
+
+	// create the select sql query
+	sqlStatement := `select task_id,task_name,task_desc,first_name,last_name,status_name,priority_name,tasks.created_timestamp,tasks.modified_timestamp
+					from tasks
+
+					inner join users
+						on assigned_to = user_id
+					inner join priority
+						on priority = priority_id
+					inner join status
+						on status = status_id
+						where status=$1;
+					`
+
+	// execute the sql statement
+	rows, err := db.Query(sqlStatement, id)
+
+	if err != nil {
+		log.Fatalf("Unable to execute the query. %v", err)
+	}
+
+	// close the statement
+	defer rows.Close()
+
+	// iterate over the rows
+	for rows.Next() {
+		var task models.Tasks
+
+		// unmarshal the row object to user
+		err = rows.Scan(&task.Task_id, &task.Task_name, &task.Task_desc, &task.First_name, &task.Last_name, &task.Status_name, &task.Priority_name, &task.Created_timestamp, &task.Modified_timestamp)
+
+		if err != nil {
+			log.Fatalf("Unable to scan the row. %v", err)
+		}
+
+		// append the user in the users slice
+		tasks = append(tasks, task)
+
+	}
+
+	// return empty user on error
+	return tasks, err
 }
 
 // DB Call to get all Tasks
