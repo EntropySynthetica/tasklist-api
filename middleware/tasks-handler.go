@@ -14,7 +14,7 @@ import (
 	"github.com/gorilla/mux" // used to get the params from the route
 )
 
-// Tasks //
+// API Calls //
 
 // API Call to get all Tasks
 func GetAllTasks(w http.ResponseWriter, r *http.Request) {
@@ -56,7 +56,7 @@ func GetTask(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(task)
 }
 
-// API Call to get one Task by ID
+// API Call to get one Task by Status
 func GetTaskStatus(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Context-Type", "application/x-www-form-urlencoded")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -80,6 +80,52 @@ func GetTaskStatus(w http.ResponseWriter, r *http.Request) {
 	// send the response
 	json.NewEncoder(w).Encode(task)
 }
+
+// API Call to Update one task by Status
+func UpdateTask(w http.ResponseWriter, r *http.Request) {
+
+	w.Header().Set("Content-Type", "application/x-www-form-urlencoded")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "PUT")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+
+	// get the userid from the request params, key is "id"
+	params := mux.Vars(r)
+
+	// convert the id type from string to int
+	id, err := strconv.Atoi(params["id"])
+
+	if err != nil {
+		log.Fatalf("Unable to convert the string into int.  %v", err)
+	}
+
+	// create an empty user of type models.User
+	var task models.Tasks
+
+	// decode the json request to user
+	err = json.NewDecoder(r.Body).Decode(&task)
+
+	if err != nil {
+		log.Fatalf("Unable to decode the request body.  %v", err)
+	}
+
+	// call update user to update the user
+	updatedRows := updateTask(int64(id), task)
+
+	// format the message string
+	msg := fmt.Sprintf("Task updated successfully. Total rows/record affected %v", updatedRows)
+
+	// format the response message
+	res := response{
+		ID:      int64(id),
+		Message: msg,
+	}
+
+	// send the response
+	json.NewEncoder(w).Encode(res)
+}
+
+// DB Calls
 
 // DB Call to get one Task by ID
 func getTask(id int64) (models.Tasks, error) {
@@ -228,4 +274,39 @@ func getAllTasks() ([]models.Tasks, error) {
 
 	// return empty user on error
 	return tasks, err
+}
+
+// DB Call to Update Task
+func updateTask(id int64, task models.Tasks) int64 {
+
+	// create the postgres db connection
+	db := drivers.CreateConnection()
+
+	// close the db connection
+	defer db.Close()
+
+	// create the update sql query
+	sqlStatement := `
+					UPDATE tasks
+					SET status=$2 
+					WHERE task_id=$1;
+					`
+
+	// execute the sql statement
+	res, err := db.Exec(sqlStatement, id, task.Status_name)
+
+	if err != nil {
+		log.Fatalf("Unable to execute the query. %v", err)
+	}
+
+	// check how many rows affected
+	rowsAffected, err := res.RowsAffected()
+
+	if err != nil {
+		log.Fatalf("Error while checking the affected rows. %v", err)
+	}
+
+	fmt.Printf("Total rows/record affected %v", rowsAffected)
+
+	return rowsAffected
 }
