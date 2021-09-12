@@ -20,14 +20,13 @@ import (
 func GetAllTasks(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Context-Type", "application/x-www-form-urlencoded")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
-	// get all the users in the db
+
 	tasks, err := getAllTasks()
 
 	if err != nil {
 		log.Fatalf("Unable to get all tasks. %v", err)
 	}
 
-	// send all the users as response
 	json.NewEncoder(w).Encode(tasks)
 }
 
@@ -35,24 +34,21 @@ func GetAllTasks(w http.ResponseWriter, r *http.Request) {
 func GetTask(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Context-Type", "application/x-www-form-urlencoded")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
-	// get the userid from the request params, key is "id"
+
 	params := mux.Vars(r)
 
-	// convert the id type from string to int
 	id, err := strconv.Atoi(params["id"])
 
 	if err != nil {
 		log.Fatalf("Unable to convert the string into int.  %v", err)
 	}
 
-	// call the getUser function with user id to retrieve a single user
 	task, err := getTask(int64(id))
 
 	if err != nil {
 		log.Fatalf("Unable to get user. %v", err)
 	}
 
-	// send the response
 	json.NewEncoder(w).Encode(task)
 }
 
@@ -60,68 +56,83 @@ func GetTask(w http.ResponseWriter, r *http.Request) {
 func GetTaskStatus(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Context-Type", "application/x-www-form-urlencoded")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
-	// get the userid from the request params, key is "id"
+
 	params := mux.Vars(r)
 
-	// convert the id type from string to int
 	id, err := strconv.Atoi(params["id"])
 
 	if err != nil {
 		log.Fatalf("Unable to convert the string into int.  %v", err)
 	}
 
-	// call the getUser function with user id to retrieve a single user
 	task, err := getAllTasksStatus(int64(id))
 
 	if err != nil {
 		log.Fatalf("Unable to get user. %v", err)
 	}
 
-	// send the response
 	json.NewEncoder(w).Encode(task)
 }
 
 // API Call to Update one task by Status
 func UpdateTask(w http.ResponseWriter, r *http.Request) {
-
 	w.Header().Set("Content-Type", "application/x-www-form-urlencoded")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "PUT")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 
-	// get the userid from the request params, key is "id"
 	params := mux.Vars(r)
 
-	// convert the id type from string to int
 	id, err := strconv.Atoi(params["id"])
 
 	if err != nil {
 		log.Fatalf("Unable to convert the string into int.  %v", err)
 	}
 
-	// create an empty user of type models.User
 	var task models.Tasks
 
-	// decode the json request to user
 	err = json.NewDecoder(r.Body).Decode(&task)
 
 	if err != nil {
 		log.Fatalf("Unable to decode the request body.  %v", err)
 	}
 
-	// call update user to update the user
 	updatedRows := updateTask(int64(id), task)
 
-	// format the message string
 	msg := fmt.Sprintf("Task updated successfully. Total rows/record affected %v", updatedRows)
 
-	// format the response message
 	res := response{
 		ID:      int64(id),
 		Message: msg,
 	}
 
-	// send the response
+	json.NewEncoder(w).Encode(res)
+}
+
+// API Call to Add a new Task
+func CreateTask(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Context-Type", "application/x-www-form-urlencoded")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "POST")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+
+	var task models.TasksBase
+
+	// decode the json request to task
+	err := json.NewDecoder(r.Body).Decode(&task)
+
+	if err != nil {
+		log.Fatalf("Unable to decode the request body.  %v", err)
+	}
+
+	insertID := insertTask(task)
+
+	// format a response object
+	res := response{
+		ID:      insertID,
+		Message: "Task created successfully",
+	}
+
 	json.NewEncoder(w).Encode(res)
 }
 
@@ -129,16 +140,12 @@ func UpdateTask(w http.ResponseWriter, r *http.Request) {
 
 // DB Call to get one Task by ID
 func getTask(id int64) (models.Tasks, error) {
-	// create the postgres db connection
 	db := drivers.CreateConnection()
 
-	// close the db connection
 	defer db.Close()
 
-	// create a user of models.User type
 	var task models.Tasks
 
-	// create the select sql query
 	sqlStatement := `select task_id,task_name,task_desc,first_name,last_name,status_name,priority_name,tasks.created_timestamp,tasks.modified_timestamp
 					from tasks
 
@@ -151,10 +158,8 @@ func getTask(id int64) (models.Tasks, error) {
 						where task_id=$1;
 					`
 
-	// execute the sql statement
 	row := db.QueryRow(sqlStatement, id)
 
-	// unmarshal the row object to user
 	err := row.Scan(&task.Task_id, &task.Task_name, &task.Task_desc, &task.First_name, &task.Last_name, &task.Status_name, &task.Priority_name, &task.Created_timestamp, &task.Modified_timestamp)
 
 	switch err {
@@ -167,21 +172,17 @@ func getTask(id int64) (models.Tasks, error) {
 		log.Fatalf("Unable to scan the row. %v", err)
 	}
 
-	// return empty user on error
 	return task, err
 }
 
 // DB Call to get all Tasks by Status
 func getAllTasksStatus(id int64) ([]models.Tasks, error) {
-	// create the postgres db connection
 	db := drivers.CreateConnection()
 
-	// close the db connection
 	defer db.Close()
 
 	var tasks []models.Tasks
 
-	// create the select sql query
 	sqlStatement := `select task_id,task_name,task_desc,first_name,last_name,status_name,priority_name,tasks.created_timestamp,tasks.modified_timestamp
 					from tasks
 
@@ -194,47 +195,38 @@ func getAllTasksStatus(id int64) ([]models.Tasks, error) {
 						where status=$1;
 					`
 
-	// execute the sql statement
 	rows, err := db.Query(sqlStatement, id)
 
 	if err != nil {
 		log.Fatalf("Unable to execute the query. %v", err)
 	}
 
-	// close the statement
 	defer rows.Close()
 
-	// iterate over the rows
 	for rows.Next() {
 		var task models.Tasks
 
-		// unmarshal the row object to user
 		err = rows.Scan(&task.Task_id, &task.Task_name, &task.Task_desc, &task.First_name, &task.Last_name, &task.Status_name, &task.Priority_name, &task.Created_timestamp, &task.Modified_timestamp)
 
 		if err != nil {
 			log.Fatalf("Unable to scan the row. %v", err)
 		}
 
-		// append the user in the users slice
 		tasks = append(tasks, task)
 
 	}
 
-	// return empty user on error
 	return tasks, err
 }
 
 // DB Call to get all Tasks
 func getAllTasks() ([]models.Tasks, error) {
-	// create the postgres db connection
 	db := drivers.CreateConnection()
 
-	// close the db connection
 	defer db.Close()
 
 	var tasks []models.Tasks
 
-	// create the select sql query
 	sqlStatement := `select task_id,task_name,task_desc,first_name,last_name,status_name,priority_name,tasks.created_timestamp,tasks.modified_timestamp
 					from tasks
 
@@ -246,60 +238,48 @@ func getAllTasks() ([]models.Tasks, error) {
 						on status = status_id;
 					`
 
-	// execute the sql statement
 	rows, err := db.Query(sqlStatement)
 
 	if err != nil {
 		log.Fatalf("Unable to execute the query. %v", err)
 	}
 
-	// close the statement
 	defer rows.Close()
 
-	// iterate over the rows
 	for rows.Next() {
 		var task models.Tasks
 
-		// unmarshal the row object to user
 		err = rows.Scan(&task.Task_id, &task.Task_name, &task.Task_desc, &task.First_name, &task.Last_name, &task.Status_name, &task.Priority_name, &task.Created_timestamp, &task.Modified_timestamp)
 
 		if err != nil {
 			log.Fatalf("Unable to scan the row. %v", err)
 		}
 
-		// append the user in the users slice
 		tasks = append(tasks, task)
 
 	}
 
-	// return empty user on error
 	return tasks, err
 }
 
 // DB Call to Update Task
 func updateTask(id int64, task models.Tasks) int64 {
-
-	// create the postgres db connection
 	db := drivers.CreateConnection()
 
-	// close the db connection
 	defer db.Close()
 
-	// create the update sql query
 	sqlStatement := `
 					UPDATE tasks
 					SET status=$2 
 					WHERE task_id=$1;
 					`
 
-	// execute the sql statement
 	res, err := db.Exec(sqlStatement, id, task.Status_name)
 
 	if err != nil {
 		log.Fatalf("Unable to execute the query. %v", err)
 	}
 
-	// check how many rows affected
 	rowsAffected, err := res.RowsAffected()
 
 	if err != nil {
@@ -309,4 +289,29 @@ func updateTask(id int64, task models.Tasks) int64 {
 	fmt.Printf("Total rows/record affected %v", rowsAffected)
 
 	return rowsAffected
+}
+
+// DB Call to add a new task
+func insertTask(task models.TasksBase) int64 {
+	db := drivers.CreateConnection()
+
+	defer db.Close()
+
+	sqlStatement := `
+					insert into tasks (task_name, task_desc, priority, status, assigned_to, created_timestamp, modified_timestamp)
+					values($1, $2, 2, 1, 2, now(), now())
+					returning task_id;
+					`
+
+	var task_id int64
+
+	err := db.QueryRow(sqlStatement, task.Task_name, task.Task_desc).Scan(&task_id)
+
+	if err != nil {
+		log.Fatalf("Unable to execute the query. %v", err)
+	}
+
+	fmt.Printf("Inserted a single record %v", task_id)
+
+	return task_id
 }
