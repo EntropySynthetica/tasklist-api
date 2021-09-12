@@ -136,6 +136,33 @@ func CreateTask(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(res)
 }
 
+// DeleteUser delete user's detail in the postgres db
+func DeleteTask(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Context-Type", "application/x-www-form-urlencoded")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "DELETE")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+
+	params := mux.Vars(r)
+
+	id, err := strconv.Atoi(params["id"])
+
+	if err != nil {
+		log.Fatalf("Unable to convert the string into int.  %v", err)
+	}
+
+	deletedRows := deleteTask(int64(id))
+
+	msg := fmt.Sprintf("Tasks updated successfully. Total rows/record affected %v", deletedRows)
+
+	res := response{
+		ID:      int64(id),
+		Message: msg,
+	}
+
+	json.NewEncoder(w).Encode(res)
+}
+
 // DB Calls
 
 // DB Call to get one Task by ID
@@ -314,4 +341,30 @@ func insertTask(task models.TasksBase) int64 {
 	fmt.Printf("Inserted a single record %v", task_id)
 
 	return task_id
+}
+
+// DB Call to delete a task
+func deleteTask(id int64) int64 {
+	db := drivers.CreateConnection()
+
+	defer db.Close()
+
+	sqlStatement := `delete from tasks where task_id=$1`
+
+	res, err := db.Exec(sqlStatement, id)
+
+	if err != nil {
+		log.Fatalf("Unable to execute the query. %v", err)
+	}
+
+	// check how many rows affected
+	rowsAffected, err := res.RowsAffected()
+
+	if err != nil {
+		log.Fatalf("Error while checking the affected rows. %v", err)
+	}
+
+	fmt.Printf("Total rows/record affected %v", rowsAffected)
+
+	return rowsAffected
 }
