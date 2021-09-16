@@ -173,7 +173,7 @@ func getTask(id int64) (models.Tasks, error) {
 
 	var task models.Tasks
 
-	sqlStatement := `select task_id,task_name,task_desc,first_name,last_name,status_name,priority_name,tasks.created_timestamp,tasks.modified_timestamp
+	sqlStatement := `select task_id,task_name,task_desc,username,status_name,priority_name,tasks.created_timestamp,tasks.modified_timestamp
 					from tasks
 
 					inner join users
@@ -187,7 +187,7 @@ func getTask(id int64) (models.Tasks, error) {
 
 	row := db.QueryRow(sqlStatement, id)
 
-	err := row.Scan(&task.Task_id, &task.Task_name, &task.Task_desc, &task.First_name, &task.Last_name, &task.Status_name, &task.Priority_name, &task.Created_timestamp, &task.Modified_timestamp)
+	err := row.Scan(&task.Task_id, &task.Task_name, &task.Task_desc, &task.Username, &task.Status_name, &task.Priority_name, &task.Created_timestamp, &task.Modified_timestamp)
 
 	switch err {
 	case sql.ErrNoRows:
@@ -210,7 +210,7 @@ func getAllTasksStatus(id int64) ([]models.Tasks, error) {
 
 	var tasks []models.Tasks
 
-	sqlStatement := `select task_id,task_name,task_desc,first_name,last_name,status_name,priority_name,tasks.created_timestamp,tasks.modified_timestamp
+	sqlStatement := `select task_id,task_name,task_desc,username,status_name,priority_name,tasks.created_timestamp,tasks.modified_timestamp
 					from tasks
 
 					inner join users
@@ -233,7 +233,7 @@ func getAllTasksStatus(id int64) ([]models.Tasks, error) {
 	for rows.Next() {
 		var task models.Tasks
 
-		err = rows.Scan(&task.Task_id, &task.Task_name, &task.Task_desc, &task.First_name, &task.Last_name, &task.Status_name, &task.Priority_name, &task.Created_timestamp, &task.Modified_timestamp)
+		err = rows.Scan(&task.Task_id, &task.Task_name, &task.Task_desc, &task.Username, &task.Status_name, &task.Priority_name, &task.Created_timestamp, &task.Modified_timestamp)
 
 		if err != nil {
 			log.Fatalf("Unable to scan the row. %v", err)
@@ -254,7 +254,7 @@ func getAllTasks() ([]models.Tasks, error) {
 
 	var tasks []models.Tasks
 
-	sqlStatement := `select task_id,task_name,task_desc,first_name,last_name,status_name,priority_name,tasks.created_timestamp,tasks.modified_timestamp
+	sqlStatement := `select task_id,task_name,task_desc,username,status_name,priority_name,tasks.created_timestamp,tasks.modified_timestamp
 					from tasks
 
 					inner join users
@@ -276,7 +276,7 @@ func getAllTasks() ([]models.Tasks, error) {
 	for rows.Next() {
 		var task models.Tasks
 
-		err = rows.Scan(&task.Task_id, &task.Task_name, &task.Task_desc, &task.First_name, &task.Last_name, &task.Status_name, &task.Priority_name, &task.Created_timestamp, &task.Modified_timestamp)
+		err = rows.Scan(&task.Task_id, &task.Task_name, &task.Task_desc, &task.Username, &task.Status_name, &task.Priority_name, &task.Created_timestamp, &task.Modified_timestamp)
 
 		if err != nil {
 			log.Fatalf("Unable to scan the row. %v", err)
