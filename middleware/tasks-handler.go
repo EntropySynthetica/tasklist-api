@@ -297,11 +297,16 @@ func updateTask(id int64, task models.Tasks) int64 {
 
 	sqlStatement := `
 					UPDATE tasks
-					SET status=$2 
+					SET task_name=$2,
+					    task_desc=$3,
+					    assigned_to=$4,
+					    status=$5,
+					    priority=$6,
+					    modified_timestamp=now()
 					WHERE task_id=$1;
 					`
 
-	res, err := db.Exec(sqlStatement, id, task.Status_name)
+	res, err := db.Exec(sqlStatement, id, task.Task_name, task.Task_desc, task.Username, task.Status_name, task.Priority_name)
 
 	if err != nil {
 		log.Fatalf("Unable to execute the query. %v", err)
