@@ -2,16 +2,16 @@ package middleware
 
 import (
 	"database/sql"
-	"encoding/json" // package to encode and decode the json into struct and vice versa
+	"encoding/json" // Package to encode and decode the json into struct and vice versa
 	"fmt"
 	"log"
-	"net/http" // used to access the request and response object of the api
-	"strconv"  // package used to covert string into int type
+	"net/http" // Used to access the request and response object of the api
+	"strconv"  // Package used to covert string into int type
 
-	"tasklist-api/drivers" // drivers package with database connection logic
-	"tasklist-api/models"  // models package where User schema is defined
+	"tasklist-api/drivers" // Database connection logic
+	"tasklist-api/models"  // Where database schema is defined
 
-	"github.com/gorilla/mux" // used to get the params from the route
+	"github.com/gorilla/mux" // Http router
 )
 
 // API Calls //

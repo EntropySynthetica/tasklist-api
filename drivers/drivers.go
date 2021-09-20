@@ -3,10 +3,10 @@ package drivers
 import (
 	"database/sql"
 	"fmt"
-	"os" // used to read the environment variable
+	"os" // Used to read the environment variables
 
-	"github.com/joho/godotenv" // package used to read the .env file
-	_ "github.com/lib/pq"      // postgres golang driver
+	"github.com/joho/godotenv" // Used to read the .env file
+	_ "github.com/lib/pq"      // Postgres golang driver
 )
 
 // Create connection with Postgres db
