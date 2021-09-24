@@ -122,7 +122,8 @@ func CreateTask(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&task)
 
 	if err != nil {
-		log.Fatalf("Unable to decode the request body.  %v", err)
+		log.Printf("Unable to decode the request body.  %v", err)
+		return
 	}
 
 	insertID := insertTask(task)
