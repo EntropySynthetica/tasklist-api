@@ -65,13 +65,15 @@ func GetTaskStatus(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(params["id"])
 
 	if err != nil {
-		log.Fatalf("Unable to convert the string into int.  %v", err)
+		log.Printf("Unable to convert the string into int.  %v", err)
+		return
 	}
 
 	task, err := getAllTasksStatus(int64(id))
 
 	if err != nil {
-		log.Fatalf("Unable to get user. %v", err)
+		log.Printf("Unable to get user. %v", err)
+		return
 	}
 
 	json.NewEncoder(w).Encode(task)
