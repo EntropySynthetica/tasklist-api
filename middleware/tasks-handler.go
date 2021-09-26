@@ -24,7 +24,8 @@ func GetAllTasks(w http.ResponseWriter, r *http.Request) {
 	tasks, err := getAllTasks()
 
 	if err != nil {
-		log.Fatalf("Unable to get all tasks. %v", err)
+		log.Printf("Unable to get all tasks. %v", err)
+		return
 	}
 
 	json.NewEncoder(w).Encode(tasks)
@@ -40,13 +41,15 @@ func GetTask(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(params["id"])
 
 	if err != nil {
-		log.Fatalf("Unable to convert the string into int.  %v", err)
+		log.Printf("Unable to convert the string into int.  %v", err)
+		return
 	}
 
 	task, err := getTask(int64(id))
 
 	if err != nil {
-		log.Fatalf("Unable to get user. %v", err)
+		log.Printf("Unable to get user. %v", err)
+		return
 	}
 
 	json.NewEncoder(w).Encode(task)
@@ -86,7 +89,8 @@ func UpdateTask(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(params["id"])
 
 	if err != nil {
-		log.Fatalf("Unable to convert the string into int.  %v", err)
+		log.Printf("Unable to convert the string into int.  %v", err)
+		return
 	}
 
 	var task models.Tasks
@@ -94,7 +98,8 @@ func UpdateTask(w http.ResponseWriter, r *http.Request) {
 	err = json.NewDecoder(r.Body).Decode(&task)
 
 	if err != nil {
-		log.Fatalf("Unable to decode the request body.  %v", err)
+		log.Printf("Unable to decode the request body.  %v", err)
+		return
 	}
 
 	updatedRows := updateTask(int64(id), task)
@@ -149,7 +154,8 @@ func DeleteTask(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(params["id"])
 
 	if err != nil {
-		log.Fatalf("Unable to convert the string into int.  %v", err)
+		log.Printf("Unable to convert the string into int.  %v", err)
+		return
 	}
 
 	deletedRows := deleteTask(int64(id))
