@@ -15,6 +15,7 @@ type Tasks struct {
 	Task_name          string `json:"task_name"`
 	Task_desc          string `json:"task_desc"`
 	Username           string `json:"username"`
+	Status_ID          string `json:"status_id"`
 	Status_name        string `json:"status_name"`
 	Priority_name      string `json:"priority_name"`
 	Created_timestamp  string `json:"created_timestamp"`

@@ -263,7 +263,7 @@ func getAllTasks() ([]models.Tasks, error) {
 
 	var tasks []models.Tasks
 
-	sqlStatement := `select task_id,task_name,task_desc,username,status_name,priority_name,tasks.created_timestamp,tasks.modified_timestamp
+	sqlStatement := `select task_id,task_name,task_desc,username,status_id,status_name,priority_name,tasks.created_timestamp,tasks.modified_timestamp
 					from tasks
 
 					inner join users
@@ -285,7 +285,7 @@ func getAllTasks() ([]models.Tasks, error) {
 	for rows.Next() {
 		var task models.Tasks
 
-		err = rows.Scan(&task.Task_id, &task.Task_name, &task.Task_desc, &task.Username, &task.Status_name, &task.Priority_name, &task.Created_timestamp, &task.Modified_timestamp)
+		err = rows.Scan(&task.Task_id, &task.Task_name, &task.Task_desc, &task.Username, &task.Status_ID, &task.Status_name, &task.Priority_name, &task.Created_timestamp, &task.Modified_timestamp)
 
 		if err != nil {
 			log.Fatalf("Unable to scan the row. %v", err)
@@ -315,7 +315,7 @@ func updateTask(id int64, task models.Tasks) int64 {
 					WHERE task_id=$1;
 					`
 
-	res, err := db.Exec(sqlStatement, id, task.Task_name, task.Task_desc, task.Username, task.Status_name, task.Priority_name)
+	res, err := db.Exec(sqlStatement, id, task.Task_name, task.Task_desc, task.Username, task.Status_ID, task.Priority_name)
 
 	if err != nil {
 		log.Fatalf("Unable to execute the query. %v", err)
